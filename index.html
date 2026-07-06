@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Notebook</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f2f5;--card:#fff;--text:#1a1a1a;--text2:#666;--border:#e0e0e0;
+  --primary:#4f46e5;--primary-light:#6366f1;--primary-bg:#eef2ff;
+  --green:#16a34a;--green-bg:#dcfce7;--orange:#ea580c;--orange-bg:#fed7aa;
+  --red:#dc2626;--red-bg:#fee2e2;--radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+[data-theme=dark]{
+  --bg:#1a1a2e;--card:#16213e;--text:#e0e0e0;--text2:#999;--border:#2a2a4a;
+  --primary:#818cf8;--primary-light:#a5b4fc;--primary-bg:#1e1b4b;
+  --green-bg:#14532d;--orange-bg:#7c2d12;--red-bg:#7f1d1d;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+.container{max-width:960px;margin:0 auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:2px solid var(--border);margin-bottom:20px}
+header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+header h1 span{font-size:26px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn-icon{background:var(--card);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--text)}
+.btn-icon:hover{border-color:var(--primary);color:var(--primary)}
+
+/* URL Bar */
+.url-bar{display:flex;gap:8px;margin-bottom:20px;background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow)}
+.url-bar input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text)}
+.url-bar input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-bg)}
+.url-bar button{padding:10px 20px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-parse{background:var(--primary);color:#fff}
+.btn-parse:hover{background:var(--primary-light)}
+.btn-parse:disabled{opacity:.5;cursor:wait}
+
+/* Parse result */
+.parse-result{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--shadow);border-left:4px solid var(--primary);display:none}
+.parse-result.show{display:block}
+.parse-result .pr-title{font-size:16px;font-weight:600;margin-bottom:6px}
+.parse-result .pr-desc{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.parse-result .pr-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
+.parse-result .pr-actions{margin-top:12px;display:flex;gap:8px}
+.parse-result .pr-content{font-size:13px;color:var(--text2);max-height:200px;overflow-y:auto;line-height:1.6;white-space:pre-wrap;background:var(--bg);padding:12px;border-radius:8px;margin-top:8px}
+
+/* Stats */
+.stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat-card{flex:1;min-width:100px;background:var(--card);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.stat-card .num{font-size:24px;font-weight:700;color:var(--primary)}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:var(--radius);padding:4px;box-shadow:var(--shadow)}
+.tab{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--primary);color:#fff}
+.tab:hover:not(.active){background:var(--primary-bg);color:var(--primary)}
+.panel{display:none}.panel.active{display:block}
+
+/* Card & Form */
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.form-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.form-group{flex:1;min-width:180px}
+.form-group.full{flex-basis:100%}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+input,textarea,select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);font-family:inherit}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-bg)}
+textarea{resize:vertical;min-height:70px;line-height:1.6}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-light)}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}.btn-secondary:hover{border-color:var(--primary)}
+
+/* List items */
+.list-item{background:var(--card);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);margin-bottom:12px}
+.list-item-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.list-item-title{font-size:15px;font-weight:600}
+.list-item-meta{font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.tag{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+.tag-course{background:var(--primary-bg);color:var(--primary)}
+.tag-memorized{background:var(--green-bg);color:var(--green)}
+.tag-learning{background:var(--orange-bg);color:var(--orange)}
+.tag-difficult{background:var(--red-bg);color:var(--red)}
+.tag-source{background:#f3e8ff;color:#9333ea}
+.list-item-body{font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;margin-top:6px}
+.list-item-source{font-size:12px;color:var(--primary);margin-top:8px;word-break:break-all}
+
+/* Word */
+.word-card{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.word-main{flex:1;min-width:180px}
+.word-word{font-size:17px;font-weight:700;color:var(--primary);font-family:Georgia,serif}
+.word-phonetic{font-size:12px;color:var(--text2);margin-left:6px;font-family:Georgia,serif}
+.word-meaning{font-size:14px;margin-top:3px}
+.word-example{font-size:12px;color:var(--text2);margin-top:5px;font-style:italic;font-family:Georgia,serif}
+.word-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:3px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;transition:all .15s}
+.btn-sm:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm.active-green{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+.btn-sm.active-red{background:var(--red-bg);color:var(--red);border-color:var(--red)}
+.difficulty-stars span{font-size:13px;cursor:pointer;color:var(--border)}
+.difficulty-stars span.active{color:#fbbf24}
+
+/* Toolbar */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.toolbar-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search-bar{position:relative;flex:1;min-width:200px}
+.search-bar input{padding-left:32px;height:36px}
+.search-bar svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text2)}
+.filter-select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--text)}
+
+/* Empty & Toast */
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty span{font-size:42px;display:block;margin-bottom:8px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:8px;font-size:14px;transition:transform .3s;z-index:999;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Sync status */
+.sync-status{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.sync-dot.synced{background:var(--green)}
+
+/* Review */
+.review-card{text-align:center;padding:30px}
+.review-word{font-size:30px;font-weight:700;color:var(--primary);font-family:Georgia,serif}
+.review-phonetic{font-size:15px;color:var(--text2);margin-top:4px;font-family:Georgia,serif}
+.review-meaning{font-size:17px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+@media(max-width:600px){.form-row{flex-direction:column}.stats{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span>📖</span> English Notebook</h1>
+    <div class="header-actions">
+      <div class="sync-status" id="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">本地</span></div>
+      <button class="btn-icon" onclick="toggleTheme()" id="theme-btn" title="切换主题">🌙</button>
+      <button class="btn-icon" onclick="syncToGitHub()" title="同步到GitHub" id="sync-btn">⬆</button>
+      <button class="btn-icon" onclick="exportData()" title="导出">⬇</button>
+      <label class="btn-icon" title="导入" style="cursor:pointer">⬆<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    </div>
+  </header>
+
+  <!-- URL Parse Bar -->
+  <div class="url-bar">
+    <input type="text" id="url-input" placeholder="粘贴链接，自动解析课程主题..." onkeydown="if(event.key==='Enter')parseURL()">
+    <button class="btn-parse" id="parse-btn" onclick="parseURL()">🔍 解析</button>
+  </div>
+
+  <!-- Parse Result -->
+  <div class="parse-result" id="parse-result">
+    <div class="pr-title" id="pr-title"></div>
+    <div class="pr-desc" id="pr-desc"></div>
+    <div class="pr-meta" id="pr-meta"></div>
+    <div class="pr-content" id="pr-content"></div>
+    <div class="pr-actions">
+      <button class="btn btn-primary" onclick="useParsedAsCourse()">📝 用此内容创建课程</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('parse-result').classList.remove('show')">关闭</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="stats"></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('course')">📚 课程记录</button>
+    <button class="tab" onclick="switchTab('vocab')">📝 单词本</button>
+    <button class="tab" onclick="switchTab('review')">🔄 复习</button>
+    <button class="tab" onclick="switchTab('search')">🔎 搜索</button>
+  </div>
+
+  <!-- Course Panel -->
+  <div class="panel active" id="panel-course">
+    <div class="card">
+      <h3>➕ 添加课程记录</h3>
+      <div class="form-row">
+        <div class="form-group"><label>日期</label><input type="date" id="course-date"></div>
+        <div class="form-group"><label>课程主题</label><input type="text" id="course-title" placeholder="如：Unit 3 - Daily Conversation"></div>
+        <div class="form-group" style="max-width:160px"><label>老师</label><input type="text" id="course-teacher" placeholder="姓名"></div>
+      </div>
+      <div class="form-group full" style="margin-bottom:12px"><label>课程笔记</label><textarea id="course-content" placeholder="重点内容、语法点..." style="min-height:90px"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>课后作业</label><input type="text" id="course-homework" placeholder="待完成作业"></div>
+        <div class="form-group" style="max-width:200px"><label>来源链接</label><input type="url" id="course-url" placeholder="https://..."></div>
+      </div>
+      <button class="btn btn-primary" onclick="addCourse()">添加记录</button>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="text" id="course-search" placeholder="搜索课程..." oninput="renderCourses()"></div>
+      </div>
+    </div>
+    <div id="course-list"></div>
+  </div>
+
+  <!-- Vocab Panel -->
+  <div class="panel" id="panel-vocab">
+    <div class="card">
+      <h3>➕ 添加新单词</h3>
+      <div class="form-row">
+        <div class="form-group"><label>单词</label><input type="text" id="word-word" placeholder="word"></div>
+        <div class="form-group"><label>音标</label><input type="text" id="word-phonetic" placeholder="/wɜːrd/"></div>
+        <div class="form-group" style="max-width:120px"><label>难度</label><div class="difficulty-stars" id="word-difficulty"><span onclick="setDifficulty(1)">★</span><span onclick="setDifficulty(2)">★</span><span onclick="setDifficulty(3)">★</span><span onclick="setDifficulty(4)">★</span><span onclick="setDifficulty(5)">★</span></div></div>
+      </div>
+      <div class="form-group full" style="margin-bottom:10px"><label>中文释义</label><input type="text" id="word-meaning" placeholder="n. 单词；话语"></div>
+      <div class="form-group full" style="margin-bottom:10px"><label>例句</label><textarea id="word-example" placeholder="The word is used in this sentence." style="min-height:45px"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>标签</label><input type="text" id="word-tags" placeholder="课程相关, 日常用语"></div>
+        <div class="form-group" style="max-width:200px"><label>关联课程</label><select id="word-course-link"><option value="">无</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addWord()">添加单词</button>
+    </div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="text" id="word-search" placeholder="搜索单词..." oninput="renderWords()"></div>
+        <select class="filter-select" id="word-filter" onchange="renderWords()">
+          <option value="all">全部</option><option value="learning">学习中</option><option value="memorized">已记住</option><option value="difficult">困难</option>
+        </select>
+      </div>
+    </div>
+    <div id="word-list"></div>
+  </div>
+
+  <!-- Review Panel -->
+  <div class="panel" id="panel-review">
+    <div class="card">
+      <h3>🔄 随机复习</h3>
+      <div class="form-row">
+        <div class="form-group" style="max-width:140px"><label>每次数量</label><select id="review-count"><option>5</option><option selected>10</option><option>20</option><option value="999">全部</option></select></div>
+        <div class="form-group" style="max-width:180px"><label>范围</label><select id="review-scope"><option value="all">全部</option><option value="learning">仅学习中</option><option value="difficult">仅困难词</option></select></div>
+        <div class="form-group" style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="startReview()">开始复习</button></div>
+      </div>
+    </div>
+    <div id="review-area"></div>
+  </div>
+
+  <!-- Search Panel -->
+  <div class="panel" id="panel-search">
+    <div class="card">
+      <h3>🔎 全局搜索</h3>
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">搜索所有课程记录和单词，支持标题、内容、释义、例句搜索。</p>
+      <div class="search-bar" style="margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input type="text" id="global-search" placeholder="输入关键词搜索..." oninput="globalSearch()" style="height:40px;font-size:15px"></div>
+      <div class="form-row" style="margin:0">
+        <label><input type="checkbox" id="search-courses" checked onchange="globalSearch()"> 课程记录</label>
+        <label><input type="checkbox" id="search-words" checked onchange="globalSearch()"> 单词</label>
+      </div>
+    </div>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let data = { courses: [], words: [], settings: {} };
+let currentDifficulty = 0;
+let needsSync = false;
+
+// ====== Data ======
+async function loadData() {
+  try {
+    const res = await fetch('/api/data');
+    data = await res.json();
+  } catch(e) {
+    // Fallback to localStorage
+    const raw = localStorage.getItem('en_notebook');
+    if (raw) data = JSON.parse(raw);
+  }
+  if (!data.courses) data.courses = [];
+  if (!data.words) data.words = [];
+  if (!data.settings) data.settings = {};
+}
+async function saveData() {
+  needsSync = true;
+  updateSyncStatus();
+  try {
+    await fetch('/api/data', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  } catch(e) {
+    localStorage.setItem('en_notebook', JSON.stringify(data));
+  }
+}
+
+// ====== Sync ======
+function updateSyncStatus() {
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  if (needsSync) { dot.classList.remove('synced'); text.textContent = '未同步'; }
+  else { dot.classList.add('synced'); text.textContent = '已同步'; }
+}
+async function syncToGitHub() {
+  toast('正在同步到GitHub...');
+  try {
+    const res = await fetch('/api/sync', { method:'POST' });
+    const result = await res.json();
+    if (result.success) {
+      needsSync = false;
+      updateSyncStatus();
+      toast(result.message || '同步成功 ✓');
+    } else {
+      toast('同步失败: ' + (result.error || result.stderr || '未知错误'));
+    }
+  } catch(e) {
+    toast('同步失败: 服务器未运行');
+  }
+}
+
+// ====== Theme ======
+function toggleTheme() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? '' : 'dark');
+  localStorage.setItem('en_theme', dark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = dark ? '🌙' : '☀️';
+}
+if (localStorage.getItem('en_theme') === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.getElementById('theme-btn').textContent = '☀️';
+}
+
+// ====== Tabs ======
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const panels = ['course','vocab','review','search'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ====== URL Parse ======
+async function parseURL() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+  const btn = document.getElementById('parse-btn');
+  btn.disabled = true; btn.textContent = '解析中...';
+  try {
+    const res = await fetch('/api/parse?url=' + encodeURIComponent(url));
+    const result = await res.json();
+    if (result.success) {
+      const el = document.getElementById('parse-result');
+      document.getElementById('pr-title').textContent = result.title || '(无标题)';
+      document.getElementById('pr-desc').textContent = result.description || '';
+      document.getElementById('pr-meta').innerHTML = 
+        `<span>🔗 ${esc(result.url)}</span>` +
+        (result.image ? `<span>🖼 有图片</span>` : '') +
+        (result.headings?.length ? `<span>📋 ${result.headings.length} 个标题</span>` : '');
+      document.getElementById('pr-content').textContent = result.content || '(无正文内容)';
+      // Store for later use
+      window._parsed = result;
+      el.classList.add('show');
+    } else {
+      toast('解析失败: ' + (result.error || '未知错误'));
+    }
+  } catch(e) {
+    toast('解析失败: 请确保本地服务正在运行');
+  }
+  btn.disabled = false; btn.textContent = '🔍 解析';
+}
+
+function useParsedAsCourse() {
+  const p = window._parsed;
+  if (!p) return;
+  switchTab('course');
+  document.getElementById('course-title').value = p.title || '';
+  document.getElementById('course-content').value = 
+    (p.description ? p.description + '\n\n' : '') +
+    (p.headings?.length ? '大纲：\n' + p.headings.map(h => '• ' + h).join('\n') + '\n\n' : '') +
+    (p.content || '');
+  document.getElementById('course-url').value = p.url || '';
+  document.getElementById('course-date').value = todayStr();
+  document.getElementById('parse-result').classList.remove('show');
+  document.getElementById('url-input').value = '';
+  toast('已填入课程表单，请补充完善');
+}
+
+// ====== Course ======
+function addCourse() {
+  const date = document.getElementById('course-date').value;
+  const title = document.getElementById('course-title').value.trim();
+  const teacher = document.getElementById('course-teacher').value.trim();
+  const content = document.getElementById('course-content').value.trim();
+  const homework = document.getElementById('course-homework').value.trim();
+  const url = document.getElementById('course-url').value.trim();
+  if (!title) { toast('请输入课程主题'); return; }
+  data.courses.push({ id: Date.now(), date: date||todayStr(), title, teacher, content, homework, url });
+  saveData(); renderCourses(); renderStats(); updateCourseLinks();
+  ['course-title','course-content','course-homework','course-teacher','course-url'].forEach(id => document.getElementById(id).value = '');
+  toast('课程记录已添加 ✓');
+}
+function deleteCourse(id) {
+  data.courses = data.courses.filter(c => c.id !== id);
+  saveData(); renderCourses(); renderStats(); updateCourseLinks();
+}
+function renderCourses() {
+  const q = (document.getElementById('course-search')?.value || '').toLowerCase();
+  let list = data.courses.slice().reverse();
+  if (q) list = list.filter(c => c.title.toLowerCase().includes(q) || c.content.toLowerCase().includes(q) || (c.teacher||'').toLowerCase().includes(q));
+  const el = document.getElementById('course-list');
+  if (!list.length) { el.innerHTML = '<div class="empty"><span>📚</span>暂无课程记录</div>'; return; }
+  el.innerHTML = list.map(c => `
+    <div class="list-item">
+      <div class="list-item-header">
+        <div>
+          <div class="list-item-title">${esc(c.title)}</div>
+          <div class="list-item-meta">
+            <span class="tag tag-course">${c.date}</span>
+            ${c.teacher ? `<span>👨‍🏫 ${esc(c.teacher)}</span>` : ''}
+            ${c.url ? `<span class="tag tag-source">🔗 链接</span>` : ''}
+          </div>
+        </div>
+        <button class="btn-sm" onclick="deleteCourse(${c.id})" style="border:none">🗑</button>
+      </div>
+      ${c.content ? `<div class="list-item-body">${esc(c.content)}</div>` : ''}
+      ${c.homework ? `<div class="list-item-body" style="margin-top:6px;padding:6px 10px;background:var(--orange-bg);border-radius:6px;font-size:12px">📋 ${esc(c.homework)}</div>` : ''}
+      ${c.url ? `<div class="list-item-source"><a href="${esc(c.url)}" target="_blank">${esc(c.url)}</a></div>` : ''}
+    </div>`).join('');
+}
+function updateCourseLinks() {
+  const sel = document.getElementById('word-course-link');
+  sel.innerHTML = '<option value="">无</option>' + data.courses.map(c => 
+    `<option value="${c.id}">${esc(c.title)} (${c.date})</option>`).join('');
+}
+
+// ====== Word ======
+function setDifficulty(n) {
+  currentDifficulty = n;
+  document.querySelectorAll('#word-difficulty span').forEach((s,i) => s.classList.toggle('active', i < n));
+}
+function addWord() {
+  const word = document.getElementById('word-word').value.trim();
+  const phonetic = document.getElementById('word-phonetic').value.trim();
+  const meaning = document.getElementById('word-meaning').value.trim();
+  const example = document.getElementById('word-example').value.trim();
+  const tags = document.getElementById('word-tags').value.trim();
+  const courseLink = document.getElementById('word-course-link').value;
+  if (!word) { toast('请输入单词'); return; }
+  if (!meaning) { toast('请输入释义'); return; }
+  data.words.push({ id: Date.now(), word, phonetic, meaning, example, tags, difficulty: currentDifficulty, status: 'learning', reviewCount: 0, courseId: courseLink||null, createdAt: Date.now() });
+  saveData(); renderWords(); renderStats();
+  ['word-word','word-phonetic','word-meaning','word-example','word-tags'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('word-course-link').value = '';
+  setDifficulty(0);
+  toast('单词已添加 ✓');
+}
+function deleteWord(id) {
+  data.words = data.words.filter(w => w.id !== id);
+  saveData(); renderWords(); renderStats();
+}
+function toggleMemorized(id) {
+  const w = data.words.find(w => w.id === id);
+  if (w) { w.status = w.status === 'memorized' ? 'learning' : 'memorized'; saveData(); renderWords(); renderStats(); }
+}
+function toggleDifficult(id) {
+  const w = data.words.find(w => w.id === id);
+  if (w) { w.difficulty = (w.difficulty||0) >= 3 ? 0 : (w.difficulty||0) + 3; saveData(); renderWords(); }
+}
+function renderWords() {
+  const q = (document.getElementById('word-search')?.value || '').toLowerCase();
+  const filter = document.getElementById('word-filter')?.value || 'all';
+  let list = data.words.slice().reverse();
+  if (q) list = list.filter(w => w.word.toLowerCase().includes(q) || w.meaning.toLowerCase().includes(q) || (w.example||'').toLowerCase().includes(q));
+  if (filter === 'learning') list = list.filter(w => w.status === 'learning');
+  if (filter === 'memorized') list = list.filter(w => w.status === 'memorized');
+  if (filter === 'difficult') list = list.filter(w => (w.difficulty||0) >= 3);
+  const el = document.getElementById('word-list');
+  if (!list.length) { el.innerHTML = '<div class="empty"><span>📝</span>暂无单词</div>'; return; }
+  el.innerHTML = list.map(w => {
+    const stars = '★'.repeat(w.difficulty||0) + '☆'.repeat(5-(w.difficulty||0));
+    const tags = w.tags ? w.tags.split(/[,，]/).map(t=>t.trim()).filter(Boolean) : [];
+    const course = w.courseId ? data.courses.find(c=>c.id==w.courseId) : null;
+    return `<div class="list-item">
+      <div class="word-card">
+        <div class="word-main">
+          <div><span class="word-word">${esc(w.word)}</span>${w.phonetic?`<span class="word-phonetic">${esc(w.phonetic)}</span>`:''}</div>
+          <div class="word-meaning">${esc(w.meaning)}</div>
+          ${w.example?`<div class="word-example">"${esc(w.example)}"</div>`:''}
+          <div class="list-item-meta">
+            <span style="color:#fbbf24;font-size:11px">${stars}</span>
+            ${w.status==='memorized'?'<span class="tag tag-memorized">✓ 已记住</span>':'<span class="tag tag-learning">学习中</span>'}
+            ${(w.difficulty||0)>=3?'<span class="tag tag-difficult">困难</span>':''}
+            ${course?`<span class="tag tag-source">📚 ${esc(course.title)}</span>`:''}
+            ${tags.map(t=>`<span class="tag" style="background:var(--primary-bg);color:var(--primary)">${esc(t)}</span>`).join('')}
+            <span>复习 ${w.reviewCount||0}次</span>
+          </div>
+        </div>
+        <div class="word-actions">
+          <button class="btn-sm ${w.status==='memorized'?'active-green':''}" onclick="toggleMemorized(${w.id})">${w.status==='memorized'?'✓':'记住'}</button>
+          <button class="btn-sm ${(w.difficulty||0)>=3?'active-red':''}" onclick="toggleDifficult(${w.id})">困难</button>
+          <button class="btn-sm" onclick="deleteWord(${w.id})" style="border:none">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ====== Review ======
+function startReview() {
+  const count = parseInt(document.getElementById('review-count').value);
+  const scope = document.getElementById('review-scope').value;
+  let pool = data.words.slice();
+  if (scope === 'learning') pool = pool.filter(w => w.status === 'learning');
+  if (scope === 'difficult') pool = pool.filter(w => (w.difficulty||0) >= 3);
+  pool.sort((a,b) => ((b.status==='learning'?1:0)+(b.difficulty||0)*.2) - ((a.status==='learning'?1:0)+(a.difficulty||0)*.2));
+  const picked = pool.slice(0, Math.min(count, pool.length)).sort(() => Math.random() - .5);
+  if (!picked.length) { document.getElementById('review-area').innerHTML = '<div class="empty"><span>📝</span>没有可复习的单词</div>'; return; }
+  window._review = { words: picked, idx: 0, revealed: false };
+  renderReviewCard();
+}
+function renderReviewCard() {
+  const { words, idx, revealed } = window._review;
+  if (idx >= words.length) {
+    document.getElementById('review-area').innerHTML = `<div class="card" style="text-align:center"><h3>🎉 复习完成！</h3><p style="color:var(--text2);margin:8px 0">本次复习了 ${words.length} 个单词</p><button class="btn btn-primary" onclick="startReview()">再来一轮</button></div>`;
+    return;
+  }
+  const w = words[idx];
+  document.getElementById('review-area').innerHTML = `
+    <div class="card review-card">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">${idx+1} / ${words.length} · 复习 ${w.reviewCount||0}次</div>
+      <div class="review-word">${esc(w.word)}</div>
+      ${w.phonetic?`<div class="review-phonetic">${esc(w.phonetic)}</div>`:''}
+      ${revealed?`<div class="review-meaning">${esc(w.meaning)}${w.example?`<div style="font-size:13px;color:var(--text2);font-style:italic;margin-top:8px">"${esc(w.example)}"</div>`:''}</div>`:'<div style="margin-top:16px;font-size:13px;color:var(--text2)">点击查看释义</div>'}
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:20px">
+        ${!revealed?`<button class="btn btn-primary" onclick="revealReview()">显示释义</button>`:`
+          <button class="btn btn-secondary" onclick="reviewAnswer(false)">😅 没记住</button>
+          <button class="btn btn-primary" onclick="reviewAnswer(true)">😎 记住了</button>
+        `}
+      </div>
+    </div>`;
+}
+function revealReview() { window._review.revealed = true; renderReviewCard(); }
+function reviewAnswer(correct) {
+  const w = window._review.words[window._review.idx];
+  w.reviewCount = (w.reviewCount||0) + 1;
+  if (correct) { w.status = 'memorized'; }
+  else { w.status = 'learning'; if ((w.difficulty||0) < 3) w.difficulty = (w.difficulty||0) + 1; }
+  saveData();
+  window._review.idx++; window._review.revealed = false;
+  renderReviewCard(); renderWords(); renderStats();
+}
+
+// ====== Global Search ======
+function globalSearch() {
+  const q = (document.getElementById('global-search')?.value || '').toLowerCase().trim();
+  const searchCourses = document.getElementById('search-courses')?.checked;
+  const searchWords = document.getElementById('search-words')?.checked;
+  const el = document.getElementById('search-results');
+  if (!q) { el.innerHTML = '<div class="empty"><span>🔎</span>输入关键词开始搜索</div>'; return; }
+  let results = '';
+  if (searchCourses) {
+    const courses = data.courses.filter(c => 
+      c.title.toLowerCase().includes(q) || c.content.toLowerCase().includes(q) || (c.homework||'').toLowerCase().includes(q) || (c.teacher||'').toLowerCase().includes(q));
+    if (courses.length) {
+      results += `<h3 style="margin:8px 0;font-size:14px;color:var(--text2)">📚 课程记录 (${courses.length})</h3>`;
+      results += courses.slice().reverse().map(c => `
+        <div class="list-item">
+          <div class="list-item-header"><div><div class="list-item-title">${highlight(c.title,q)}</div>
+          <div class="list-item-meta"><span class="tag tag-course">${c.date}</span>${c.teacher?`<span>${esc(c.teacher)}</span>`:''}</div></div></div>
+          ${c.content?`<div class="list-item-body">${highlight(c.content.slice(0,300),q)}</div>`:''}
+        </div>`).join('');
+    }
+  }
+  if (searchWords) {
+    const words = data.words.filter(w =>
+      w.word.toLowerCase().includes(q) || w.meaning.toLowerCase().includes(q) || (w.example||'').toLowerCase().includes(q) || (w.tags||'').toLowerCase().includes(q));
+    if (words.length) {
+      results += `<h3 style="margin:16px 0 8px;font-size:14px;color:var(--text2)">📝 单词 (${words.length})</h3>`;
+      results += words.slice().reverse().map(w => `
+        <div class="list-item">
+          <div class="word-card"><div class="word-main">
+            <div><span class="word-word">${highlight(w.word,q)}</span>${w.phonetic?`<span class="word-phonetic">${esc(w.phonetic)}</span>`:''}</div>
+            <div class="word-meaning">${highlight(w.meaning,q)}</div>
+            ${w.example?`<div class="word-example">"${highlight(w.example,q)}"</div>`:''}
+          </div></div>
+        </div>`).join('');
+    }
+  }
+  el.innerHTML = results || '<div class="empty"><span>🔍</span>未找到匹配结果</div>';
+}
+function highlight(text, q) {
+  if (!q) return esc(text);
+  const escaped = esc(text);
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return escaped.replace(re, '<mark style="background:#fde047;color:#000;border-radius:2px">$1</mark>');
+}
+
+// ====== Stats ======
+function renderStats() {
+  const tc = data.courses.length, tw = data.words.length;
+  const mem = data.words.filter(w=>w.status==='memorized').length;
+  const learn = tw - mem;
+  const diff = data.words.filter(w=>(w.difficulty||0)>=3).length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="num">${tc}</div><div class="label">课程</div></div>
+    <div class="stat-card"><div class="num">${tw}</div><div class="label">单词</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--green)">${mem}</div><div class="label">已记住</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--orange)">${learn}</div><div class="label">学习中</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--red)">${diff}</div><div class="label">困难</div></div>`;
+}
+
+// ====== Export/Import ======
+function exportData() {
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`english-notebook-${todayStr()}.json`; a.click();
+  URL.revokeObjectURL(url);
+  toast('已导出 ✓');
+}
+function importData(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imp = JSON.parse(ev.target.result);
+      if (imp.courses) data.courses = data.courses.concat(imp.courses);
+      if (imp.words) data.words = data.words.concat(imp.words);
+      saveData(); renderCourses(); renderWords(); renderStats(); updateCourseLinks();
+      toast('导入成功 ✓');
+    } catch { toast('导入失败：格式错误'); }
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ====== Utils ======
+function esc(s) { return (s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+// ====== Init ======
+(async function init() {
+  await loadData();
+  document.getElementById('course-date').value = todayStr();
+  renderCourses(); renderWords(); renderStats(); updateCourseLinks(); updateSyncStatus();
+})();
+</script>
+</body>
+</html>
