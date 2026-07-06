@@ -86,26 +86,55 @@ def parse_url(url):
         return {"success": False, "error": str(e)}
 
 def git_sync():
-    """Git add, commit, and push."""
+    """Sync data.json to GitHub via REST API."""
+    import base64
+    config_path = os.path.join(ROOT, ".github_config.json")
+    if not os.path.exists(config_path):
+        return {"success": False, "error": "GitHub 配置文件不存在，请先创建 .github_config.json"}
+    with open(config_path, "r") as f:
+        config = json.load(f)
+    TOKEN = config.get("token", "")
+    OWNER = config.get("owner", "")
+    REPO = config.get("repo", "english-notebook")
+    if not TOKEN or not OWNER:
+        return {"success": False, "error": "GitHub 配置不完整"}
+    API = f"https://api.github.com/repos/{OWNER}/{REPO}"
+    HEADERS = {
+        "Authorization": f"token {TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+    }
     try:
-        os.chdir(ROOT)
-        # Check if there are changes
-        result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        if not result.stdout.strip():
-            return {"success": True, "message": "No changes to sync"}
+        # Read data.json
+        data_path = os.path.join(ROOT, "data.json")
+        if not os.path.exists(data_path):
+            return {"success": True, "message": "No data to sync"}
+        with open(data_path, "rb") as f:
+            content = base64.b64encode(f.read()).decode()
         
-        subprocess.run(["git", "add", "-A"], check=True)
-        commit_msg = f"Update notebook data - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True, capture_output=True)
+        # Get current SHA
+        req = urllib.request.Request(f"{API}/contents/data.json", headers=HEADERS)
+        sha = None
+        try:
+            with urllib.request.urlopen(req) as resp:
+                info = json.loads(resp.read().decode())
+                sha = info.get("sha")
+        except Exception:
+            pass  # File doesn't exist yet
         
-        # Try push
-        push_result = subprocess.run(["git", "push"], capture_output=True, text=True)
-        if push_result.returncode != 0:
-            return {"success": True, "message": "Committed locally. Push failed - remote may not be set up yet.", "push_error": push_result.stderr}
+        # Upload
+        payload = {"message": f"Update notebook data - {datetime.now().strftime('%Y-%m-%d %H:%M')}", "content": content}
+        if sha:
+            payload["sha"] = sha
+        body = json.dumps(payload).encode()
+        req = urllib.request.Request(f"{API}/contents/data.json", data=body, headers=HEADERS, method="PUT")
+        with urllib.request.urlopen(req) as resp:
+            result = json.loads(resp.read().decode())
         
-        return {"success": True, "message": "Synced to GitHub successfully"}
-    except subprocess.CalledProcessError as e:
-        return {"success": False, "error": str(e), "stderr": e.stderr.decode() if e.stderr else ""}
+        if "content" in result:
+            return {"success": True, "message": "数据已同步到 GitHub ✓"}
+        else:
+            return {"success": False, "error": str(result)}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
